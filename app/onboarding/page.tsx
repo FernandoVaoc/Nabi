@@ -1,14 +1,33 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 // Importamos iconos para todas las rutas
-import { Wind, Sun, Heart, Moon, Zap, BrainCircuit, ShieldCheck, Activity, Target, Flame } from 'lucide-react';
+import { Wind, Sun, Heart, Moon, Zap, BrainCircuit, ShieldCheck, Activity, Target, Sparkles } from 'lucide-react';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [suggestedRoute, setSuggestedRoute] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSuggestion = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from('profiles')
+          .select('suggested_route')
+          .eq('id', user.id)
+          .single();
+        if (data?.suggested_route) setSuggestedRoute(data.suggested_route);
+      } catch (err) {
+        console.error('Error obteniendo ruta sugerida:', err);
+      }
+    };
+    fetchSuggestion();
+  }, []);
 
   // Nuestras 10 opciones clínicas
   const routes = [
@@ -70,27 +89,48 @@ export default function OnboardingPage() {
           <p className="text-[#64748B] text-lg max-w-2xl mx-auto font-medium leading-relaxed">
             Nabi adaptará sus tareas, recordatorios y recomendaciones según lo que necesites hoy. Puedes cambiarlo más adelante.
           </p>
+
+          {suggestedRoute && (
+            <div className="mt-6 inline-flex items-center gap-2 bg-[#EEF0FF] text-[#5C61E1] px-5 py-2.5 rounded-full border border-white shadow-sm">
+              <Sparkles className="w-4 h-4" strokeWidth={2.5} />
+              <span className="text-[12px] font-black uppercase tracking-[0.15em]">
+                Sugerida por tu test: {suggestedRoute}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* CUADRÍCULA DE OPCIONES */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {routes.map((route) => (
-            <button
-              key={route.id}
-              onClick={() => handleSelectRoute(route.id)}
-              disabled={loading}
-              className="bg-white p-6 rounded-[32px] shadow-sm border border-[#E2E8F0] text-center hover:shadow-xl hover:-translate-y-1 hover:border-transparent transition-all group relative overflow-hidden disabled:opacity-50 disabled:hover:translate-y-0 flex flex-col items-center"
-            >
-              {/* Decoración de fondo en hover */}
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${route.bg}`}></div>
-              
-              <div className={`w-16 h-16 ${route.bg} rounded-[24px] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500 border border-white shadow-inner`}>
-                {route.icon}
-              </div>
-              <h3 className="text-lg font-extrabold text-[#0F172A] mb-2">{route.title}</h3>
-              <p className="text-[#64748B] text-xs font-medium leading-relaxed">{route.desc}</p>
-            </button>
-          ))}
+          {routes.map((route) => {
+            const isSuggested = suggestedRoute === route.id;
+            return (
+              <button
+                key={route.id}
+                onClick={() => handleSelectRoute(route.id)}
+                disabled={loading}
+                className={`bg-white p-6 rounded-[32px] text-center hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden disabled:opacity-50 disabled:hover:translate-y-0 flex flex-col items-center ${
+                  isSuggested
+                    ? 'border-2 border-[#6C72F1] shadow-[0_8px_25px_rgba(108,114,241,0.18)] ring-4 ring-[#EEF0FF]'
+                    : 'shadow-sm border border-[#E2E8F0] hover:border-transparent'
+                }`}
+              >
+                {isSuggested && (
+                  <span className="absolute top-3 right-3 bg-[#6C72F1] text-white text-[9px] font-black uppercase tracking-[0.15em] px-2 py-1 rounded-full shadow-sm">
+                    Sugerida
+                  </span>
+                )}
+                {/* Decoración de fondo en hover */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${route.bg}`}></div>
+
+                <div className={`w-16 h-16 ${route.bg} rounded-[24px] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500 border border-white shadow-inner`}>
+                  {route.icon}
+                </div>
+                <h3 className="text-lg font-extrabold text-[#0F172A] mb-2">{route.title}</h3>
+                <p className="text-[#64748B] text-xs font-medium leading-relaxed">{route.desc}</p>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

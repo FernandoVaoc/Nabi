@@ -31,11 +31,11 @@ export default function PlanPage() {
 
   const getPrice = () => {
     switch (billingCycle) {
-      case 'mensual': return { total: 50, perMonth: 50, save: 0 };
-      case 'trimestral': return { total: 135, perMonth: 45, save: 10 }; 
-      case 'semestral': return { total: 240, perMonth: 40, save: 20 }; 
-      case 'anual': return { total: 420, perMonth: 35, save: 30 }; 
-      default: return { total: 50, perMonth: 50, save: 0 };
+      case 'mensual': return { total: 100, perMonth: 100, save: 0 };
+      case 'trimestral': return { total: 270, perMonth: 90, save: 10 };
+      case 'semestral': return { total: 480, perMonth: 80, save: 20 };
+      case 'anual': return { total: 840, perMonth: 70, save: 30 };
+      default: return { total: 100, perMonth: 100, save: 0 };
     }
   };
 

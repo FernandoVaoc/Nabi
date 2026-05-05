@@ -64,7 +64,7 @@ export default function Register() {
       if (role === 'psicologo') {
         router.push("/psicologo/dashboard");
       } else {
-        router.push("/onboarding");
+        router.push("/test");
       }
 
     } catch (error: any) {

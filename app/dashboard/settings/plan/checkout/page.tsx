@@ -11,7 +11,7 @@ function CheckoutForm() {
   const searchParams = useSearchParams();
   
   const cycle = searchParams.get('cycle') || 'mensual';
-  const amount = searchParams.get('amount') || '50';
+  const amount = searchParams.get('amount') || '100';
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);

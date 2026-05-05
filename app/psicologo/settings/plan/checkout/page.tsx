@@ -11,7 +11,13 @@ function PsicologoCheckoutForm() {
   const searchParams = useSearchParams();
   
   const cycle = searchParams.get('cycle') || 'mensual';
-  const amount = searchParams.get('amount') || '299';
+  const amount = searchParams.get('amount') || '300';
+  const plan = (searchParams.get('plan') as 'plus' | 'ilimitado') || 'plus';
+
+  const planLabel = plan === 'ilimitado' ? 'Nabi Ilimitado' : 'Nabi Plus';
+  const planMessage = plan === 'ilimitado'
+    ? 'Tu plan Ilimitado ha sido activado. Tu agenda ya no tiene límite de pacientes. ¡Gracias por confiar en Nabi!'
+    : 'Tu plan Plus ha sido activado. Ahora puedes vincular hasta 15 pacientes. ¡Gracias por confiar en Nabi!';
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -65,10 +71,10 @@ function PsicologoCheckoutForm() {
     setLoading(true);
 
     try {
-      // 1. Actualizamos el plan a PREMIUM
+      // 1. Actualizamos el plan al paquete elegido (plus o ilimitado)
       const { error } = await supabase
         .from('profiles')
-        .update({ plan: 'premium' })
+        .update({ plan: plan })
         .eq('id', user.id);
 
       if (error) throw error;
@@ -77,19 +83,21 @@ function PsicologoCheckoutForm() {
       await supabase.from('notifications').insert([{
         user_id: user.id,
         title: '¡Suscripción Activada! 👑',
-        message: 'Tu plan Profesional ha sido activado. Tu agenda ahora es ilimitada. ¡Gracias por confiar en Nabi!',
+        message: planMessage,
         type: 'info'
       }]);
 
-      // 3. AQUÍ ESTÁ LA CORRECCIÓN DEL CORREO: Llamamos a la API correcta
+      // 3. Enviamos recibo por correo
       fetch('/api/premium-psicologo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: user.email, 
+        body: JSON.stringify({
+          email: user.email,
           name: profile?.full_name || 'Psicólogo',
           amount: amount,
-          cycle: cycle
+          cycle: cycle,
+          plan: plan,
+          planLabel: planLabel,
         })
       }).catch(err => console.error("Error enviando recibo:", err));
 
@@ -117,9 +125,9 @@ function PsicologoCheckoutForm() {
           <div className="w-28 h-28 bg-gradient-to-br from-[#FEF3C7]/40 to-[#FFFBEB] rounded-[32px] flex items-center justify-center mb-6 border border-[#FDE047]/50 shadow-sm relative z-10">
             <CheckCircle2 className="w-14 h-14 text-[#D97706]" strokeWidth={2.5} />
           </div>
-          <h2 className="text-[32px] md:text-[40px] font-extrabold text-[#333333] mb-4 tracking-tight z-10 leading-tight">¡Bienvenido a Pro!</h2>
+          <h2 className="text-[32px] md:text-[40px] font-extrabold text-[#333333] mb-4 tracking-tight z-10 leading-tight">¡Bienvenido a {planLabel}!</h2>
           <p className="text-[#8A95A5] text-[16px] text-center max-w-md font-medium z-10 leading-relaxed">
-            Tu pago fue exitoso y el recibo fue enviado a tu correo. Redirigiendo a tu directorio clínico ilimitado...
+            Tu pago fue exitoso y el recibo fue enviado a tu correo. Redirigiendo a tu panel...
           </p>
           
           <div className="mt-8 w-12 h-12 border-4 border-[#FDE047]/30 border-t-[#FBBF24] rounded-full animate-spin z-10"></div>
@@ -150,7 +158,7 @@ function PsicologoCheckoutForm() {
             </h3>
             
             <div className="flex justify-between items-center mb-6 bg-[#EEF0FF]/50 p-4 rounded-[20px] border border-white shadow-sm">
-              <span className="font-extrabold text-[#6C72F1] flex items-center gap-1.5"><Crown className="w-4 h-4" strokeWidth={2.5} /> Nabi Pro</span>
+              <span className="font-extrabold text-[#6C72F1] flex items-center gap-1.5"><Crown className="w-4 h-4" strokeWidth={2.5} /> {planLabel}</span>
               <span className="text-[#5C61E1] uppercase text-[10px] font-black tracking-widest bg-white px-2.5 py-1 rounded-md shadow-sm border border-white">{cycle}</span>
             </div>
             

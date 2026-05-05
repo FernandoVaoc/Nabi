@@ -275,9 +275,13 @@ export default function PsicologoLayout({
               </div>
               <div className="flex flex-col justify-center">
                 <p className="text-[13px] font-extrabold text-[#1E293B] truncate max-w-[120px] leading-tight mb-0.5">{firstName}</p>
-                {userPlan === 'premium' ? (
+                {(userPlan === 'ilimitado' || userPlan === 'premium') ? (
                   <span className="text-[9px] font-black text-[#D97706] tracking-widest uppercase flex items-center gap-1 w-fit leading-none">
-                    <Crown className="w-3 h-3" /> Profesional
+                    <Crown className="w-3 h-3" /> Ilimitado
+                  </span>
+                ) : userPlan === 'plus' ? (
+                  <span className="text-[9px] font-black text-[#6C72F1] tracking-widest uppercase flex items-center gap-1 w-fit leading-none">
+                    <Sparkles className="w-3 h-3" /> Plan Plus
                   </span>
                 ) : (
                   <span className="text-[9px] font-black text-[#8A95A5] tracking-widest uppercase flex items-center gap-1 group-hover:text-[#6C72F1] transition-colors w-fit leading-none">

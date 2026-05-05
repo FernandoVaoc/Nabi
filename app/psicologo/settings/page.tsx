@@ -265,26 +265,66 @@ export default function PsicologoSettingsPage() {
           {/* NUEVA TARJETA DE SUSCRIPCIÓN (Estilo Premium) */}
           <div className="bg-white/70 backdrop-blur-xl rounded-[40px] shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-white overflow-hidden flex flex-col">
             <div className="p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center flex-shrink-0 shadow-sm border border-white ${userPlan === 'premium' ? 'bg-[#FEF3C7] text-[#D97706]' : 'bg-[#F8FAFC] text-[#64748B]'}`}>
-                  <Crown className="w-7 h-7" strokeWidth={2.5} />
-                </div>
-                <div>
-                  <h2 className="text-[20px] font-extrabold text-[#333333] mb-1">Suscripción</h2>
-                  <p className="text-[13px] text-[#8A95A5] font-medium">Gestiona tu agenda.</p>
-                </div>
-              </div>
+              {(() => {
+                const isUnlimited = userPlan === 'ilimitado' || userPlan === 'premium';
+                const isPlus = userPlan === 'plus';
+                const isPaid = isUnlimited || isPlus;
 
-              <div className={`p-6 rounded-[28px] border ${userPlan === 'premium' ? 'bg-gradient-to-br from-[#FEF3C7]/40 to-[#FFFBEB] border-[#FDE047]/50' : 'bg-white/50 border-white'} mb-8 shadow-sm`}>
-                <p className="text-[10px] font-black text-[#8A95A5] uppercase tracking-[0.15em] mb-1">Plan Actual</p>
-                <h3 className={`text-[24px] font-black tracking-tight ${userPlan === 'premium' ? 'text-[#D97706]' : 'text-[#333333]'}`}>
-                  {userPlan === 'premium' ? 'Nabi Pro' : 'Plan Básico'}
-                </h3>
-              </div>
+                const planName = isUnlimited ? 'Nabi Ilimitado' : isPlus ? 'Nabi Plus' : 'Plan Básico';
+                const planSubtitle = isUnlimited
+                  ? 'Pacientes sin límite'
+                  : isPlus
+                    ? 'Hasta 15 pacientes vinculados'
+                    : 'Hasta 5 pacientes gratis';
 
-              <Link href="/psicologo/settings/plan" className={`w-full py-4 rounded-[20px] font-extrabold text-[14px] transition-all shadow-sm flex items-center justify-center gap-2 ${userPlan === 'premium' ? 'bg-white border-2 border-[#FDE047] text-[#D97706] hover:bg-[#FEF3C7]/50' : 'bg-[#6C72F1] text-white hover:bg-[#5C61E1] shadow-[0_4px_15px_rgba(108,114,241,0.3)]'}`}>
-                {userPlan === 'premium' ? 'Gestionar plan' : 'Mejorar a Pro'} <Sparkles className="w-4 h-4" strokeWidth={2.5} />
-              </Link>
+                const iconBg = isUnlimited
+                  ? 'bg-[#FEF3C7] text-[#D97706]'
+                  : isPlus
+                    ? 'bg-[#EEF0FF] text-[#6C72F1]'
+                    : 'bg-[#F8FAFC] text-[#64748B]';
+
+                const cardBg = isUnlimited
+                  ? 'bg-gradient-to-br from-[#FEF3C7]/40 to-[#FFFBEB] border-[#FDE047]/50'
+                  : isPlus
+                    ? 'bg-gradient-to-br from-[#EEF0FF]/50 to-white border-[#6C72F1]/30'
+                    : 'bg-white/50 border-white';
+
+                const titleColor = isUnlimited
+                  ? 'text-[#D97706]'
+                  : isPlus
+                    ? 'text-[#6C72F1]'
+                    : 'text-[#333333]';
+
+                const buttonClasses = isPaid
+                  ? 'bg-white border-2 border-[#FDE047] text-[#D97706] hover:bg-[#FEF3C7]/50'
+                  : 'bg-[#6C72F1] text-white hover:bg-[#5C61E1] shadow-[0_4px_15px_rgba(108,114,241,0.3)]';
+
+                return (
+                  <>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center flex-shrink-0 shadow-sm border border-white ${iconBg}`}>
+                        <Crown className="w-7 h-7" strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <h2 className="text-[20px] font-extrabold text-[#333333] mb-1">Suscripción</h2>
+                        <p className="text-[13px] text-[#8A95A5] font-medium">Gestiona tu agenda.</p>
+                      </div>
+                    </div>
+
+                    <div className={`p-6 rounded-[28px] border ${cardBg} mb-8 shadow-sm`}>
+                      <p className="text-[10px] font-black text-[#8A95A5] uppercase tracking-[0.15em] mb-1">Plan Actual</p>
+                      <h3 className={`text-[24px] font-black tracking-tight ${titleColor}`}>
+                        {planName}
+                      </h3>
+                      <p className="text-[12px] text-[#64748B] font-medium mt-1">{planSubtitle}</p>
+                    </div>
+
+                    <Link href="/psicologo/settings/plan" className={`w-full py-4 rounded-[20px] font-extrabold text-[14px] transition-all shadow-sm flex items-center justify-center gap-2 ${buttonClasses}`}>
+                      {isPaid ? 'Gestionar plan' : 'Mejorar plan'} <Sparkles className="w-4 h-4" strokeWidth={2.5} />
+                    </Link>
+                  </>
+                );
+              })()}
             </div>
           </div>
 

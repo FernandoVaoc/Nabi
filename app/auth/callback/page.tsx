@@ -20,7 +20,7 @@ export default function CallbackPage() {
                 // Intentamos obtener el perfil
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('role, selected_route, full_name')
+                    .select('role, selected_route, full_name, assessment_completed')
                     .eq('id', user.id)
                     .single();
 
@@ -31,6 +31,8 @@ export default function CallbackPage() {
 
                     if (profile.role === 'psicologo') {
                         router.push('/psicologo/dashboard');
+                    } else if (!profile.assessment_completed) {
+                        router.push('/test');
                     } else if (profile.selected_route) {
                         router.push('/dashboard');
                     } else {
@@ -89,7 +91,7 @@ export default function CallbackPage() {
                     if (savedRole === 'psicologo') {
                         router.push('/psicologo/dashboard');
                     } else {
-                        router.push('/onboarding');
+                        router.push('/test');
                     }
                 }
             } catch (error) {

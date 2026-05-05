@@ -17,6 +17,20 @@ export default function PsicologoDashboardPage() {
   });
 
   const MAX_FREE_PATIENTS = 5;
+  const MAX_PLUS_PATIENTS = 15;
+
+  // null = ilimitado
+  const getPatientLimit = (plan: string): number | null => {
+    if (plan === 'plus') return MAX_PLUS_PATIENTS;
+    if (plan === 'ilimitado' || plan === 'premium') return null;
+    return MAX_FREE_PATIENTS; // 'gratis' por defecto
+  };
+
+  const planDisplayName = (plan: string): string => {
+    if (plan === 'plus') return 'Plan Plus';
+    if (plan === 'ilimitado' || plan === 'premium') return 'Plan Ilimitado';
+    return 'Plan Básico';
+  };
 
   useEffect(() => {
     const fetchMyPatientsAndProfile = async () => {
@@ -79,7 +93,13 @@ export default function PsicologoDashboardPage() {
     fetchMyPatientsAndProfile();
   }, []);
 
-  const isLimitReached = userPlan === 'gratis' && stats.activos >= MAX_FREE_PATIENTS;
+  const patientLimit = getPatientLimit(userPlan);
+  const isUnlimited = patientLimit === null;
+  const isLimitReached = patientLimit !== null && stats.activos >= patientLimit;
+  const remaining = patientLimit !== null ? Math.max(patientLimit - stats.activos, 0) : 0;
+  const progressPct = patientLimit !== null && patientLimit > 0
+    ? Math.min((stats.activos / patientLimit) * 100, 100)
+    : 0;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#F3E7FC] via-[#E2F4EE] to-[#FDF3E9] text-[#1E293B] font-sans relative overflow-hidden pb-24">
@@ -100,18 +120,20 @@ export default function PsicologoDashboardPage() {
             </div>
             
             <h3 className="text-[40px] font-black text-[#333333] mb-2 tracking-tight leading-none relative z-10">
-              {loading ? "..." : stats.activos} 
-              {userPlan === 'gratis' && <span className={`text-[20px] ml-1 font-bold ${isLimitReached ? 'text-[#D97706]/70' : 'text-[#94A3B8]'}`}>/ {MAX_FREE_PATIENTS}</span>}
+              {loading ? "..." : stats.activos}
+              {!isUnlimited && <span className={`text-[20px] ml-1 font-bold ${isLimitReached ? 'text-[#D97706]/70' : 'text-[#94A3B8]'}`}>/ {patientLimit}</span>}
             </h3>
-            
-            {userPlan === 'gratis' ? (
+
+            {!isUnlimited ? (
               <div className="mt-auto pt-4 flex flex-col relative z-10">
                 {!isLimitReached ? (
                   <>
                     <div className="w-full bg-white/50 rounded-full h-2.5 mb-2.5 overflow-hidden shadow-inner border border-white">
-                      <div className="bg-[#6C72F1] h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${(stats.activos / MAX_FREE_PATIENTS) * 100}%` }}></div>
+                      <div className="bg-[#6C72F1] h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPct}%` }}></div>
                     </div>
-                    <p className="text-[11px] font-bold text-[#8A95A5]">Te quedan <span className="text-[#6C72F1]">{MAX_FREE_PATIENTS - stats.activos} cupos</span> disponibles</p>
+                    <p className="text-[11px] font-bold text-[#8A95A5]">
+                      {planDisplayName(userPlan)} · Te quedan <span className="text-[#6C72F1]">{remaining} cupos</span>
+                    </p>
                   </>
                 ) : (
                   <Link href="/psicologo/settings/plan" className="mt-1 w-full py-3.5 bg-gradient-to-r from-[#FDE047] to-[#F59E0B] hover:from-[#FBBF24] hover:to-[#D97706] text-[#78350F] rounded-[20px] font-extrabold text-[13px] uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
@@ -164,7 +186,11 @@ export default function PsicologoDashboardPage() {
             </div>
             <div className="flex-1">
               <h4 className="text-[18px] font-extrabold text-[#333333] mb-1.5">Has alcanzado tu límite de pacientes</h4>
-              <p className="text-[13px] text-[#64748B] font-medium leading-relaxed max-w-3xl">El Plan Básico te permite atender a 5 pacientes de forma gratuita. Descubre el Plan Premium para atender a todos los pacientes que necesites sin restricciones.</p>
+              <p className="text-[13px] text-[#64748B] font-medium leading-relaxed max-w-3xl">
+                {userPlan === 'plus'
+                  ? `El plan Plus te permite vincular hasta ${MAX_PLUS_PATIENTS} pacientes. Pásate al plan Ilimitado para crecer sin restricciones.`
+                  : `El plan Básico te permite atender a ${MAX_FREE_PATIENTS} pacientes de forma gratuita. Conoce los planes Plus e Ilimitado para ampliar tu agenda.`}
+              </p>
             </div>
             <Link href="/psicologo/settings/plan" className="w-full sm:w-auto mt-4 sm:mt-0 whitespace-nowrap bg-[#6C72F1] text-white font-extrabold text-[13px] uppercase tracking-wider px-8 py-4 rounded-[20px] shadow-[0_4px_15px_rgba(108,114,241,0.3)] hover:shadow-lg hover:bg-[#5C61E1] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
               Ver planes <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
