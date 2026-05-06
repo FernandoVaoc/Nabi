@@ -667,10 +667,6 @@ export default function DashboardPage() {
                     ></div>
                   </div>
                 </div>
-
-                <button className="w-full py-4 bg-[#6C72F1] hover:bg-[#5C61E1] text-white rounded-[20px] font-extrabold text-[13px] uppercase tracking-wider transition-all shadow-[0_4px_15px_rgba(108,114,241,0.3)] hover:-translate-y-0.5 hover:shadow-lg">
-                  Hablar con {companion?.name || 'Nabi'}
-                </button>
               </div>
             )}
 

@@ -1,16 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Mail, ChevronDown, Copy, Shield, ShieldCheck, KeyRound, Crown, Sparkles } from 'lucide-react';
+import { Mail, ChevronDown, Copy, Shield, ShieldCheck, KeyRound, Crown, Sparkles, Trash2, AlertTriangle, X } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PsicologoSettingsPage() {
+  const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [userPlan, setUserPlan] = useState("gratis");
+
+  // Eliminación de cuenta
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const [profileData, setProfileData] = useState({
     name: '',
@@ -80,6 +88,36 @@ export default function PsicologoSettingsPage() {
       alert("Hubo un error al guardar los cambios.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm.trim().toUpperCase() !== 'ELIMINAR') {
+      setDeleteError('Escribe ELIMINAR para confirmar.');
+      return;
+    }
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Sesión expirada. Inicia sesión de nuevo.');
+
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || 'No pudimos eliminar tu cuenta.');
+
+      await supabase.auth.signOut();
+      router.push('/login');
+    } catch (err: any) {
+      console.error(err);
+      setDeleteError(err.message || 'Hubo un error eliminando tu cuenta.');
+      setDeleting(false);
     }
   };
 
@@ -382,10 +420,102 @@ export default function PsicologoSettingsPage() {
             </form>
           </div>
 
+          {/* ZONA DE PELIGRO - ELIMINAR CUENTA */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-[40px] shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-[#FECACA]/40 overflow-hidden">
+            <div className="p-8">
+              <div className="flex items-center gap-4 mb-5">
+                <div className="w-14 h-14 rounded-[20px] flex items-center justify-center flex-shrink-0 shadow-sm border border-white bg-[#FEF2F2] text-[#EF4444]">
+                  <Trash2 className="w-6 h-6" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h2 className="text-[18px] font-extrabold text-[#333333] mb-1">Zona de peligro</h2>
+                  <p className="text-[12px] text-[#8A95A5] font-medium leading-relaxed">Esta acción es permanente.</p>
+                </div>
+              </div>
+
+              <p className="text-[12px] text-[#64748B] font-medium leading-relaxed mb-5 bg-[#FEF2F2]/60 border border-[#FECACA]/50 p-4 rounded-[16px]">
+                Al eliminar tu cuenta tus pacientes serán <b>desvinculados</b> automáticamente y se borrarán las tareas y datos que hayas asignado. Esta acción no se puede deshacer.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => { setDeleteError(''); setDeleteConfirm(''); setDeleteModalOpen(true); }}
+                className="w-full bg-white border-2 border-[#FCA5A5] text-[#EF4444] hover:bg-[#FEF2F2] font-extrabold py-4 rounded-[20px] transition-all shadow-sm text-[13px] uppercase tracking-wider flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" strokeWidth={2.5} /> Eliminar mi cuenta
+              </button>
+            </div>
+          </div>
+
         </div>
 
       </div>
 
+      {/* MODAL DE CONFIRMACIÓN */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[32px] shadow-2xl max-w-md w-full p-8 relative animate-in zoom-in-95 duration-200 border border-white">
+            <button
+              type="button"
+              onClick={() => !deleting && setDeleteModalOpen(false)}
+              className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#F8FAFC] hover:bg-[#F1F5F9] flex items-center justify-center text-[#64748B] transition"
+            >
+              <X className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+
+            <div className="w-16 h-16 mx-auto bg-[#FEF2F2] rounded-[24px] flex items-center justify-center mb-5 border border-[#FECACA]/50">
+              <AlertTriangle className="w-8 h-8 text-[#EF4444]" strokeWidth={2.5} />
+            </div>
+
+            <h2 className="text-[22px] font-extrabold text-[#1E293B] text-center mb-2 leading-tight">
+              ¿Eliminar tu cuenta?
+            </h2>
+            <p className="text-[13px] text-[#64748B] text-center font-medium leading-relaxed mb-6">
+              Esta acción es <b className="text-[#EF4444]">permanente</b>. Tus pacientes serán desvinculados y las tareas que les asignaste serán eliminadas.
+            </p>
+
+            <label className="block text-[10px] font-black text-[#EF4444] uppercase tracking-[0.15em] mb-2 pl-1">
+              Para confirmar, escribe <b>ELIMINAR</b>
+            </label>
+            <input
+              type="text"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              disabled={deleting}
+              placeholder="ELIMINAR"
+              className="w-full px-5 py-3.5 bg-white border-2 border-[#FCA5A5] rounded-[16px] text-[#1E293B] font-extrabold focus:outline-none focus:border-[#EF4444] focus:ring-4 focus:ring-[#FEE2E2] transition-all placeholder:text-[#FCA5A5] text-[14px] tracking-widest"
+            />
+
+            {deleteError && (
+              <p className="mt-3 text-[12px] text-[#B91C1C] font-bold text-center">{deleteError}</p>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={deleting}
+                className="py-3.5 rounded-[16px] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#475569] font-extrabold text-[13px] uppercase tracking-wider transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="py-3.5 rounded-[16px] bg-[#EF4444] hover:bg-[#DC2626] text-white font-extrabold text-[13px] uppercase tracking-wider transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Eliminando
+                  </>
+                ) : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
