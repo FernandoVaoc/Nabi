@@ -8,24 +8,24 @@ import { CheckCircle2, XCircle, Sparkles, Crown, ShieldCheck, Users, Infinity as
 // =============================================================================
 // 3 paquetes para psicólogos:
 //   - basico    : gratis, hasta 5 pacientes
-//   - plus      : $300 MXN/mes, hasta 15 pacientes
-//   - ilimitado : $600 MXN/mes, pacientes sin límite
+//   - plus      : $299 MXN/mes, hasta 15 pacientes
+//   - ilimitado : $599 MXN/mes, pacientes sin límite
 // =============================================================================
 
 type PlanKey = 'plus' | 'ilimitado';
 
 const PRICING: Record<PlanKey, Record<string, { total: number; perMonth: number; save: number }>> = {
   plus: {
-    mensual:    { total: 300,  perMonth: 300, save: 0 },
-    trimestral: { total: 810,  perMonth: 270, save: 10 },
-    semestral:  { total: 1440, perMonth: 240, save: 20 },
-    anual:      { total: 2520, perMonth: 210, save: 30 },
+    mensual:    { total: 299,  perMonth: 299, save: 0 },
+    trimestral: { total: 807,  perMonth: 269, save: 10 },
+    semestral:  { total: 1434, perMonth: 239, save: 20 },
+    anual:      { total: 2511, perMonth: 209, save: 30 },
   },
   ilimitado: {
-    mensual:    { total: 600,  perMonth: 600, save: 0 },
-    trimestral: { total: 1620, perMonth: 540, save: 10 },
-    semestral:  { total: 2880, perMonth: 480, save: 20 },
-    anual:      { total: 5040, perMonth: 420, save: 30 },
+    mensual:    { total: 599,  perMonth: 599, save: 0 },
+    trimestral: { total: 1617, perMonth: 539, save: 10 },
+    semestral:  { total: 2874, perMonth: 479, save: 20 },
+    anual:      { total: 5031, perMonth: 419, save: 30 },
   },
 };
 

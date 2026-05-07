@@ -11,7 +11,7 @@ function PsicologoCheckoutForm() {
   const searchParams = useSearchParams();
   
   const cycle = searchParams.get('cycle') || 'mensual';
-  const amount = searchParams.get('amount') || '300';
+  const amount = searchParams.get('amount') || '299';
   const plan = (searchParams.get('plan') as 'plus' | 'ilimitado') || 'plus';
 
   const planLabel = plan === 'ilimitado' ? 'Nabi Ilimitado' : 'Nabi Plus';
